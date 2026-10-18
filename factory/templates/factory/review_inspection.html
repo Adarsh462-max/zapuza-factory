@@ -1,0 +1,102 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Review Inspection | Zapuza{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold">Review Inspection</h2>
+    <p class="text-secondary">Check measurements before making a decision.</p>
+</div>
+
+<div class="card stat-card" style="max-width: 850px;">
+    <div class="card-body p-4">
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="text-secondary">Part Number</div>
+                <h5>{{ inspection.part_number }}</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="text-secondary">Machine</div>
+                <h5>{{ inspection.machine.code }} — {{ inspection.machine.name }}</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="text-secondary">Nominal Value</div>
+                <h5>{{ inspection.nominal_value }}</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="text-secondary">Allowed Range</div>
+                <h5>{{ inspection.lower_limit }} – {{ inspection.upper_limit }}</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="text-secondary">Actual Measurement</div>
+                <h5>{{ inspection.actual_value }}</h5>
+            </div>
+            <div class="col-md-6">
+                <div class="text-secondary">Inspection Result</div>
+                {% if inspection.result == "PASS" %}
+                    <span class="badge bg-success fs-6">PASS</span>
+                {% else %}
+                    <span class="badge bg-danger fs-6">FAIL</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if inspection.defect_photo %}
+            <h6>Defect Photo</h6>
+            <img src="{{ inspection.defect_photo.url }}"
+                 alt="Inspection defect"
+                 class="img-fluid rounded mb-4"
+                 style="max-width: 350px;">
+        {% endif %}
+
+        {% if inspection.review_status == "PENDING" %}
+            <form method="post">
+                {% csrf_token %}
+
+                <label class="form-label">Supervisor Remark</label>
+                <textarea name="supervisor_remark"
+                          class="form-control mb-3"
+                          rows="3"
+                          placeholder="Enter review notes or rejection reason"></textarea>
+
+                <button type="submit"
+                        name="action"
+                        value="approve"
+                        class="btn btn-success"
+                        {% if inspection.result != "PASS" %}disabled{% endif %}>
+                    Approve Inspection
+                </button>
+
+                <button type="submit"
+                        name="action"
+                        value="reject"
+                        class="btn btn-danger ms-2">
+                    Reject Inspection
+                </button>
+
+                {% if inspection.result == "FAIL" %}
+                    <p class="text-danger mt-3 mb-0">
+                        Failed inspections cannot be approved for normal dispatch.
+                    </p>
+                {% endif %}
+            </form>
+        {% else %}
+            <hr>
+            <p>
+                <strong>Review Status:</strong>
+                {{ inspection.get_review_status_display }}
+            </p>
+            <p>
+                <strong>Supervisor Remark:</strong>
+                {{ inspection.supervisor_remark|default:"No remark provided" }}
+            </p>
+        {% endif %}
+
+        <a href="{% url 'approval_list' %}"
+           class="btn btn-outline-secondary mt-3">
+            Back to Approval Queue
+        </a>
+    </div>
+</div>
+{% endblock %}

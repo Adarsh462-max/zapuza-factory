@@ -1,0 +1,204 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Add Machine | Zapuza Factory{% endblock %}
+{% block page_heading %}Machine Management{% endblock %}
+
+{% block content %}
+
+<style>
+    .form-page-title {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+
+    .form-page-subtitle {
+        color: #77869a;
+        font-size: 14px;
+    }
+
+    .machine-form-card {
+        max-width: 760px;
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+    }
+
+    .form-header {
+        padding: 22px 24px;
+        background: #fbfcfe;
+        border-bottom: 1px solid #edf1f6;
+    }
+
+    .form-header h5 {
+        font-size: 16px;
+        font-weight: 700;
+        color: #253b57;
+        margin-bottom: 5px;
+    }
+
+    .form-header p {
+        font-size: 12px;
+        color: #8794a6;
+        margin-bottom: 0;
+    }
+
+    .form-body {
+        padding: 25px;
+    }
+
+    .form-label {
+        font-size: 13px;
+        font-weight: 650;
+        color: #34465d;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 1px solid #dce4ef;
+        border-radius: 9px;
+        padding: 11px 12px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: #80a9ff;
+        box-shadow: 0 0 0 .2rem #3978f61a;
+    }
+
+    .field-help {
+        font-size: 12px;
+        color: #8794a6;
+        margin-top: 6px;
+    }
+
+    .field-icon {
+        color: #3978f6;
+        font-size: 17px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 18px 25px;
+        border-top: 1px solid #edf1f6;
+    }
+
+    .form-actions .btn {
+        border-radius: 9px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    @media (max-width: 575px) {
+        .form-page-title { font-size: 20px; }
+        .form-body { padding: 18px; }
+        .form-header { padding: 18px; }
+        .form-actions { padding: 16px 18px; }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="mb-4">
+    <h2 class="form-page-title">Add New Machine</h2>
+    <p class="form-page-subtitle mb-0">
+        Register a factory machine or workstation in the system.
+    </p>
+</div>
+
+<!-- Machine Form -->
+<div class="machine-form-card">
+
+    <div class="form-header">
+        <h5>
+            <i class="bi bi-cpu field-icon me-2"></i>
+            Machine Information
+        </h5>
+        <p>Fields marked with * are required.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-body">
+
+            <div class="mb-4">
+                <label for="machine_name" class="form-label">
+                    Machine Name <span class="text-danger">*</span>
+                </label>
+
+                <input type="text"
+                       id="machine_name"
+                       name="name"
+                       class="form-control"
+                       placeholder="e.g. CNC Lathe 04"
+                       maxlength="100"
+                       required>
+
+                <div class="field-help">
+                    Enter the machine's official name.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="machine_code" class="form-label">
+                    Machine Code <span class="text-danger">*</span>
+                </label>
+
+                <input type="text"
+                       id="machine_code"
+                       name="code"
+                       class="form-control"
+                       placeholder="e.g. CNC-04"
+                       maxlength="30"
+                       required>
+
+                <div class="field-help">
+                    Use a unique code to identify the machine.
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label for="machine_location" class="form-label">
+                    Location / Department <span class="text-danger">*</span>
+                </label>
+
+                <input type="text"
+                       id="machine_location"
+                       name="location"
+                       class="form-control"
+                       placeholder="e.g. Machining Shop"
+                       maxlength="100"
+                       required>
+
+                <div class="field-help">
+                    Specify the department, workshop or factory area.
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'machine_list' %}"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle me-1"></i>
+                Save Machine
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

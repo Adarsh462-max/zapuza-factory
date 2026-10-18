@@ -1,0 +1,321 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Supervisor Approvals | Zapuza Factory{% endblock %}
+{% block page_heading %}Supervisor Approvals{% endblock %}
+
+{% block content %}
+
+<style>
+    .approval-title {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+
+    .approval-description {
+        color: #77869a;
+        font-size: 14px;
+    }
+
+    .approval-summary {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 19px;
+        background: #fff7e8;
+        border: 1px solid #f7e5bd;
+        border-radius: 13px;
+    }
+
+    .summary-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
+        background: #ffebc4;
+        color: #a96b08;
+        font-size: 20px;
+    }
+
+    .summary-label {
+        color: #8b6b32;
+        font-size: 12px;
+    }
+
+    .summary-number {
+        color: #7d5105;
+        font-size: 23px;
+        font-weight: 750;
+        line-height: 1.2;
+    }
+
+    .approval-panel {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 15px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 20px;
+        border-bottom: 1px solid #edf1f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .panel-title {
+        color: #192b43;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .approval-search {
+        max-width: 270px;
+    }
+
+    .approval-search .form-control {
+        border-radius: 9px;
+        padding: 9px 12px;
+    }
+
+    .approval-table {
+        margin-bottom: 0;
+    }
+
+    .approval-table thead th {
+        background: #f6f8fc;
+        color: #617189;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+        padding: 15px;
+        border-bottom: 1px solid #e9eef5;
+    }
+
+    .approval-table tbody td {
+        padding: 16px 15px;
+        vertical-align: middle;
+        color: #42536a;
+        font-size: 13px;
+    }
+
+    .approval-table tbody tr:hover {
+        background: #f8faff;
+    }
+
+    .part-number {
+        font-weight: 700;
+        color: #253b57;
+    }
+
+    .machine-code {
+        font-weight: 650;
+        color: #253b57;
+    }
+
+    .machine-name {
+        font-size: 12px;
+        color: #8794a6;
+        margin-top: 3px;
+    }
+
+    .status-pill {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .pass-pill {
+        background: #e5f7ed;
+        color: #167748;
+    }
+
+    .fail-pill {
+        background: #ffebeb;
+        color: #c23737;
+    }
+
+    .review-btn {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 8px 13px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 15px;
+        color: #8794a6;
+    }
+
+    .empty-state i {
+        display: block;
+        font-size: 38px;
+        color: #20a36b;
+        margin-bottom: 12px;
+    }
+
+    .panel-footer {
+        padding: 14px 20px;
+        border-top: 1px solid #edf1f6;
+        color: #8794a6;
+        font-size: 12px;
+    }
+
+    @media (max-width: 576px) {
+        .approval-title { font-size: 20px; }
+        .panel-header { padding: 16px; }
+        .approval-search { max-width: 100%; width: 100%; }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="approval-title">Supervisor Approval Queue</h2>
+        <p class="approval-description mb-0">
+            Review inspection results and record supervisor decisions.
+        </p>
+    </div>
+
+    <div class="approval-summary">
+        <div class="summary-icon">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div>
+            <div class="summary-label">Pending Reviews</div>
+            <div class="summary-number">{{ inspections|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Table -->
+<div class="approval-panel">
+    <div class="panel-header">
+        <div>
+            <h3 class="panel-title">Inspections Awaiting Review</h3>
+            <div class="small text-secondary mt-1">
+                Open an inspection to review its details.
+            </div>
+        </div>
+
+        <div class="approval-search">
+            <input type="search"
+                   id="approvalSearch"
+                   class="form-control"
+                   placeholder="Search part or machine..."
+                   aria-label="Search pending inspections">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover approval-table" id="approvalTable">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Machine</th>
+                    <th>Actual Value</th>
+                    <th>Result</th>
+                    <th>Review Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in inspections %}
+                <tr>
+                    <td>
+                        <span class="part-number">{{ item.part_number }}</span>
+                    </td>
+
+                    <td>
+                        <div class="machine-code">{{ item.machine.code }}</div>
+                        <div class="machine-name">{{ item.machine.name }}</div>
+                    </td>
+
+                    <td class="fw-semibold">{{ item.actual_value }}</td>
+
+                    <td>
+                        {% if item.result == "PASS" %}
+                            <span class="status-pill pass-pill">
+                                <i class="bi bi-check-circle me-1"></i>PASS
+                            </span>
+                        {% elif item.result == "FAIL" %}
+                            <span class="status-pill fail-pill">
+                                <i class="bi bi-x-circle me-1"></i>FAIL
+                            </span>
+                        {% else %}
+                            <span class="status-pill bg-secondary-subtle text-secondary">
+                                {{ item.get_result_display|default:"Unknown" }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="status-pill bg-warning-subtle text-warning-emphasis">
+                            <i class="bi bi-clock me-1"></i>Pending Review
+                        </span>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'review_inspection' item.pk %}"
+                           class="btn btn-primary review-btn">
+                            Review <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-check-circle"></i>
+                            <div class="fw-semibold text-dark">
+                                No pending inspections
+                            </div>
+                            <p class="small mb-0">
+                                All current inspections have been reviewed.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-footer">
+        <i class="bi bi-info-circle me-1"></i>
+        Failed inspections cannot be approved for normal dispatch.
+    </div>
+</div>
+
+<script>
+    const approvalSearch = document.getElementById("approvalSearch");
+    const approvalRows = document.querySelectorAll("#approvalTable tbody tr");
+
+    approvalSearch.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+
+        approvalRows.forEach(function (row) {
+            row.style.display = row.textContent.toLowerCase().includes(query)
+                ? ""
+                : "none";
+        });
+    });
+</script>
+
+{% endblock %}

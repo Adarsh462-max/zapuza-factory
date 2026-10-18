@@ -1,0 +1,299 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Quality Inspections | Zapuza Factory{% endblock %}
+{% block page_heading %}Quality Inspections{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-heading {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+
+    .page-description {
+        color: #77869a;
+        font-size: 14px;
+    }
+
+    .inspection-panel {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 15px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 20px;
+        border-bottom: 1px solid #edf1f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .panel-title {
+        color: #192b43;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .inspection-search {
+        max-width: 280px;
+    }
+
+    .inspection-search input {
+        border-radius: 9px;
+        padding: 9px 12px;
+    }
+
+    .inspection-table {
+        margin-bottom: 0;
+    }
+
+    .inspection-table thead th {
+        background: #f6f8fc;
+        color: #617189;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+        padding: 15px 14px;
+        border-bottom: 1px solid #e9eef5;
+    }
+
+    .inspection-table tbody td {
+        padding: 15px 14px;
+        vertical-align: middle;
+        color: #42536a;
+        font-size: 13px;
+    }
+
+    .inspection-table tbody tr:hover {
+        background: #f8faff;
+    }
+
+    .part-name {
+        font-weight: 700;
+        color: #253b57;
+    }
+
+    .machine-name {
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .status-pill {
+        display: inline-block;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .pass-pill, .approved-pill {
+        background: #e5f7ed;
+        color: #167748;
+    }
+
+    .fail-pill, .rejected-pill {
+        background: #ffebeb;
+        color: #c23737;
+    }
+
+    .pending-pill {
+        background: #fff3dc;
+        color: #98610a;
+    }
+
+    .neutral-pill {
+        background: #edf1f6;
+        color: #617189;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 15px;
+        color: #8794a6;
+    }
+
+    .empty-state i {
+        font-size: 35px;
+        color: #b8c5d6;
+        display: block;
+        margin-bottom: 10px;
+    }
+
+    .table-footer {
+        padding: 14px 20px;
+        border-top: 1px solid #edf1f6;
+        color: #8794a6;
+        font-size: 12px;
+    }
+
+    @media (max-width: 576px) {
+        .page-heading { font-size: 20px; }
+        .panel-header { padding: 16px; }
+        .inspection-search { max-width: 100%; width: 100%; }
+    }
+</style>
+
+<!-- Page Heading -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="page-heading">Quality Inspections</h2>
+        <p class="page-description mb-0">
+            Monitor part measurements, quality results and supervisor reviews.
+        </p>
+    </div>
+
+    <a href="{% url 'inspection_create' %}" class="btn btn-primary px-3 py-2">
+        <i class="bi bi-plus-lg me-1"></i> New Inspection
+    </a>
+</div>
+
+<!-- Inspection Table -->
+<div class="inspection-panel">
+    <div class="panel-header">
+        <div>
+            <h3 class="panel-title">Inspection Records</h3>
+            <div class="small text-secondary mt-1">
+                Search and filter the displayed records
+            </div>
+        </div>
+
+        <div class="inspection-search">
+            <input type="search"
+                   id="inspectionSearch"
+                   class="form-control"
+                   placeholder="Search part or machine..."
+                   aria-label="Search inspections">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover inspection-table" id="inspectionTable">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Machine</th>
+                    <th>Nominal</th>
+                    <th>Allowed Range</th>
+                    <th>Actual</th>
+                    <th>Result</th>
+                    <th>Review Status</th>
+                    <th>Defect Photo</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in inspections %}
+                <tr>
+                    <td>
+                        <span class="part-name">{{ item.part_number }}</span>
+                    </td>
+
+                    <td>
+                        <div class="fw-semibold">{{ item.machine.code }}</div>
+                        <div class="machine-name">{{ item.machine.name }}</div>
+                    </td>
+
+                    <td>{{ item.nominal_value }}</td>
+
+                    <td class="text-nowrap">
+                        {{ item.lower_limit }} – {{ item.upper_limit }}
+                    </td>
+
+                    <td class="fw-semibold">{{ item.actual_value }}</td>
+
+                    <td>
+                        {% if item.result == "PASS" %}
+                            <span class="status-pill pass-pill">
+                                <i class="bi bi-check-circle me-1"></i>PASS
+                            </span>
+                        {% elif item.result == "FAIL" %}
+                            <span class="status-pill fail-pill">
+                                <i class="bi bi-x-circle me-1"></i>FAIL
+                            </span>
+                        {% else %}
+                            <span class="status-pill neutral-pill">
+                                {{ item.get_result_display|default:"Unknown" }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if item.review_status == "APPROVED" %}
+                            <span class="status-pill approved-pill">Approved</span>
+                        {% elif item.review_status == "REJECTED" %}
+                            <span class="status-pill rejected-pill">Rejected</span>
+                        {% else %}
+                            <span class="status-pill pending-pill">Pending Review</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if item.defect_photo %}
+                            <a href="{{ item.defect_photo.url }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-image me-1"></i> View
+                            </a>
+                        {% else %}
+                            <span class="text-secondary">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard2-x"></i>
+                            <div class="fw-semibold">No inspections found</div>
+                            <p class="small mb-3">
+                                Create an inspection to start tracking quality.
+                            </p>
+                            <a href="{% url 'inspection_create' %}"
+                               class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Create Inspection
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <i class="bi bi-info-circle me-1"></i>
+        Inspection results are calculated using the configured tolerance limits.
+    </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById("inspectionSearch");
+    const inspectionRows = document.querySelectorAll(
+        "#inspectionTable tbody tr"
+    );
+
+    searchInput.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+
+        inspectionRows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? "" : "none";
+        });
+    });
+</script>
+
+{% endblock %}

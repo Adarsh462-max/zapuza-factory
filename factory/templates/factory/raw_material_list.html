@@ -1,0 +1,391 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Raw Material Register | Zapuza{% endblock %}
+
+{% block content %}
+<style>
+    .material-card {
+        border: 1px solid var(--bs-border-color);
+        border-radius: 16px;
+        background: var(--bs-body-bg);
+        overflow: hidden;
+    }
+
+    .material-heading {
+        font-weight: 750;
+        letter-spacing: -0.4px;
+    }
+
+    .material-table th {
+        background: var(--bs-tertiary-bg);
+        color: var(--bs-secondary-color);
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        padding: 15px;
+    }
+
+    .material-table td {
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+    .material-search {
+        max-width: 330px;
+    }
+
+    .material-status {
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+
+    .action-panel {
+        min-width: 280px;
+        max-width: 390px;
+    }
+
+    .action-panel form {
+        margin-bottom: 8px;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <div class="text-secondary small fw-semibold mb-2">
+            FACTORY OPERATIONS / MATERIALS
+        </div>
+        <h2 class="material-heading mb-2">Raw Material Register</h2>
+        <p class="text-secondary mb-0">
+            Track incoming material, certificates and verification status.
+        </p>
+    </div>
+
+    <a href="{% url 'raw_material_create' %}"
+       class="btn btn-primary px-3 py-2">
+        <i class="bi bi-plus-circle me-2"></i>Register Material
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="text-secondary small mb-2">Total Receipts</div>
+                <div class="fs-3 fw-bold">{{ materials|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="text-secondary small mb-2">Pending Verification</div>
+                <div class="fs-3 fw-bold text-warning">{{ pending_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="text-secondary small mb-2">In Lab Testing</div>
+                <div class="fs-3 fw-bold text-info">{{ lab_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card h-100">
+            <div class="card-body">
+                <div class="text-secondary small mb-2">Released</div>
+                <div class="fs-3 fw-bold text-success">{{ released_count }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="material-card">
+    <div class="p-3 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <h5 class="fw-bold mb-0">Received Material Records</h5>
+
+        <div class="input-group material-search">
+            <span class="input-group-text bg-transparent">
+                <i class="bi bi-search"></i>
+            </span>
+            <input
+                type="search"
+                id="materialSearch"
+                class="form-control"
+                placeholder="Search supplier, heat number..."
+                aria-label="Search raw material records"
+            >
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover material-table mb-0">
+            <thead>
+                <tr>
+                    <th>Heat Number</th>
+                    <th>Supplier / PO</th>
+                    <th>Material Grade</th>
+                    <th>Quantity</th>
+                    <th>MTC</th>
+                    <th>Verification</th>
+                    <th>Lab Test</th>
+                    <th>Status</th>
+                    <th>Received At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody id="materialTable">
+                {% for item in materials %}
+                <tr>
+                    <td class="fw-bold">{{ item.heat_number }}</td>
+
+                    <td>
+                        <div class="fw-semibold">{{ item.supplier_name }}</div>
+                        <div class="small text-secondary">
+                            PO: {{ item.purchase_order_number }}
+                        </div>
+                    </td>
+
+                    <td>{{ item.material_grade }}</td>
+                    <td>{{ item.quantity_received }}</td>
+
+                    <td>
+                        {% if item.mtc_file %}
+                            <a href="{{ item.mtc_file.url }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-1"></i>View MTC
+                            </a>
+                        {% else %}
+                            <span class="text-secondary">Not uploaded</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if item.mtc_verified and item.heat_number_verified %}
+                            <span class="badge bg-success-subtle text-success-emphasis material-status">
+                                <i class="bi bi-check-circle me-1"></i>Verified
+                            </span>
+                        {% else %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis material-status">
+                                <i class="bi bi-clock me-1"></i>Pending
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if not item.lab_testing_required %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis">
+                                Not Required
+                            </span>
+                        {% elif item.lab_test_passed %}
+                            <span class="badge bg-success-subtle text-success-emphasis">
+                                PASS
+                            </span>
+                        {% elif item.status == "SUPPLIER_QUARANTINE" %}
+                            <span class="badge bg-danger-subtle text-danger-emphasis">
+                                Failed / Review
+                            </span>
+                        {% else %}
+                            <span class="badge bg-info-subtle text-info-emphasis">
+                                Pending
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if item.status == "RELEASED" %}
+                            <span class="badge bg-success material-status">Released</span>
+                        {% elif item.status == "IN_LAB_TESTING" %}
+                            <span class="badge bg-info text-dark material-status">In Lab Testing</span>
+                        {% elif item.status == "SUPPLIER_QUARANTINE" %}
+                            <span class="badge bg-danger material-status">Quarantined</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark material-status">Pending Verification</span>
+                        {% endif %}
+
+                        {% if item.verification_notes %}
+                            <div class="small text-secondary mt-2">
+                                {{ item.verification_notes|truncatechars:100 }}
+                            </div>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-nowrap">
+                        {{ item.received_at|date:"d M Y, H:i" }}
+                    </td>
+
+                    <td class="action-panel">
+                        {% if item.status == "RELEASED" or item.status == "SUPPLIER_QUARANTINE" %}
+                            <span class="text-secondary small">
+                                <i class="bi bi-lock me-1"></i>Finalized
+                            </span>
+                        {% else %}
+
+                            <details class="mb-2">
+                                <summary class="btn btn-sm btn-outline-primary">
+                                    Verify MTC & Heat
+                                </summary>
+
+                                <form method="post"
+                                      action="{% url 'raw_material_verify' item.pk %}"
+                                      class="border rounded p-3 mt-2">
+                                    {% csrf_token %}
+
+                                    <div class="form-check mb-2">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="mtc_verified"
+                                            id="mtc_{{ item.pk }}"
+                                            required
+                                        >
+                                        <label class="form-check-label"
+                                               for="mtc_{{ item.pk }}">
+                                            I checked the MTC document.
+                                        </label>
+                                    </div>
+
+                                    <div class="form-check mb-3">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            name="heat_number_verified"
+                                            id="heat_{{ item.pk }}"
+                                            required
+                                        >
+                                        <label class="form-check-label"
+                                               for="heat_{{ item.pk }}">
+                                            Physical heat number matches the document.
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        Confirm Verification
+                                    </button>
+                                </form>
+                            </details>
+
+                            {% if item.lab_testing_required and item.mtc_verified and item.heat_number_verified and not item.lab_test_passed %}
+                                <div class="d-flex flex-wrap gap-2 mb-2">
+                                    <form method="post"
+                                          action="{% url 'raw_material_lab_result' item.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                name="lab_result"
+                                                value="PASS"
+                                                class="btn btn-sm btn-success"
+                                                onclick="return confirm('Confirm that the laboratory test passed?')">
+                                            Lab Pass
+                                        </button>
+                                    </form>
+
+                                    <form method="post"
+                                          action="{% url 'raw_material_lab_result' item.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                name="lab_result"
+                                                value="FAIL"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Confirm lab failure and quarantine this material?')">
+                                            Lab Fail
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+
+                            {% if item.mtc_verified and item.heat_number_verified %}
+                                {% if not item.lab_testing_required or item.lab_test_passed %}
+                                    <form method="post"
+                                          action="{% url 'raw_material_release' item.pk %}"
+                                          class="mb-2">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-sm btn-success"
+                                                onclick="return confirm('Release this material? Confirm all required checks have passed.')">
+                                            <i class="bi bi-check-circle me-1"></i>Release Material
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
+                            <details>
+                                <summary class="btn btn-sm btn-outline-danger">
+                                    Quarantine
+                                </summary>
+
+                                <form method="post"
+                                      action="{% url 'raw_material_quarantine' item.pk %}"
+                                      class="border rounded p-3 mt-2">
+                                    {% csrf_token %}
+
+                                    <label for="reason_{{ item.pk }}"
+                                           class="form-label small fw-semibold">
+                                        Quarantine reason
+                                    </label>
+
+                                    <textarea
+                                        name="reason"
+                                        id="reason_{{ item.pk }}"
+                                        class="form-control form-control-sm mb-2"
+                                        rows="2"
+                                        maxlength="2000"
+                                        placeholder="Explain the issue..."
+                                        required
+                                    ></textarea>
+
+                                    <button type="submit"
+                                            class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Move this material to supplier quarantine?')">
+                                        Confirm Quarantine
+                                    </button>
+                                </form>
+                            </details>
+
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center py-5">
+                        <i class="bi bi-box-seam fs-2 d-block mb-3 text-secondary"></i>
+                        <div class="fw-semibold mb-1">No material records yet</div>
+                        <p class="text-secondary small mb-3">
+                            Start by registering an incoming raw material receipt.
+                        </p>
+                        <a href="{% url 'raw_material_create' %}"
+                           class="btn btn-primary btn-sm">
+                            Register First Material
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const materialSearch = document.getElementById("materialSearch");
+    const materialTable = document.getElementById("materialTable");
+
+    materialSearch.addEventListener("input", function () {
+        const query = this.value.trim().toLowerCase();
+
+        materialTable.querySelectorAll("tr").forEach(function (row) {
+            row.style.display = row.textContent.toLowerCase().includes(query)
+                ? ""
+                : "none";
+        });
+    });
+</script>
+{% endblock %}

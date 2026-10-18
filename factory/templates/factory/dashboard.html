@@ -1,0 +1,336 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Dashboard | Zapuza Factory{% endblock %}
+{% block page_heading %}Dashboard Overview{% endblock %}
+
+{% block content %}
+
+<style>
+    .welcome-section { margin-bottom: 26px; }
+    .welcome-title {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+    .welcome-text { color: #77869a; font-size: 14px; }
+
+    .kpi-card {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 15px;
+        padding: 21px;
+        height: 100%;
+        box-shadow: 0 4px 18px #172b4d08;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px #172b4d12;
+    }
+    .kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+    .kpi-label { color: #718096; font-size: 13px; font-weight: 600; }
+    .kpi-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 43px;
+        height: 43px;
+        border-radius: 12px;
+        font-size: 21px;
+    }
+    .icon-blue { background: #eaf1ff; color: #3978f6; }
+    .icon-green { background: #e6f8ef; color: #168451; }
+    .icon-orange { background: #fff2df; color: #c47a13; }
+    .icon-red { background: #ffebeb; color: #d34242; }
+    .icon-purple { background: #f0eaff; color: #7952cc; }
+    .icon-teal { background: #e2f7f7; color: #148b8b; }
+
+    .kpi-number {
+        font-size: 31px;
+        font-weight: 750;
+        color: #192b43;
+        margin-top: 16px;
+        line-height: 1.2;
+    }
+    .kpi-caption { color: #8a97a9; font-size: 12px; margin-top: 7px; }
+
+    .section-card {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 15px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+    }
+    .section-header {
+        padding: 20px 22px;
+        border-bottom: 1px solid #edf1f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+        color: #192b43;
+    }
+    .section-subtitle { color: #8995a6; font-size: 12px; margin-top: 5px; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .status-pass, .status-approved { background: #e5f7ed; color: #167748; }
+    .status-fail, .status-rejected { background: #ffebeb; color: #c23737; }
+    .status-pending { background: #fff3dc; color: #98610a; }
+    .status-unknown { background: #edf1f6; color: #617189; }
+
+    .table { margin-bottom: 0; }
+    .table thead th {
+        background: #f6f8fc;
+        color: #617189;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+        border-bottom: 1px solid #e9eef5;
+    }
+    .table td, .table th { padding: 13px 14px; vertical-align: middle; }
+    .part-number { font-weight: 650; color: #253b57; }
+    .machine-code { color: #64748b; font-size: 12px; }
+    .empty-state { padding: 45px 15px; text-align: center; color: #8794a6; }
+    .empty-state i {
+        font-size: 35px;
+        display: block;
+        margin-bottom: 10px;
+        color: #b8c5d6;
+    }
+    .quick-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    @media (max-width: 575px) {
+        .welcome-title { font-size: 20px; }
+        .kpi-card { padding: 16px; }
+        .kpi-number { font-size: 27px; }
+        .section-header { padding: 16px; }
+    }
+</style>
+
+<!-- Welcome Section -->
+<div class="welcome-section">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            <h2 class="welcome-title">Welcome to Factory Operations</h2>
+            <p class="welcome-text">
+                Monitor machine activity, quality inspections and dispatch operations.
+            </p>
+        </div>
+
+        <div class="quick-actions">
+            <a href="{% url 'inspection_create' %}"
+               class="btn btn-primary btn-sm px-3 py-2">
+                <i class="bi bi-plus-lg me-1"></i> New Inspection
+            </a>
+            <a href="{% url 'machine_create' %}"
+               class="btn btn-outline-secondary btn-sm px-3 py-2">
+                <i class="bi bi-cpu me-1"></i> Add Machine
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Total Machines</span>
+                <span class="kpi-icon icon-blue"><i class="bi bi-cpu"></i></span>
+            </div>
+            <div class="kpi-number">{{ total_machines|default:0 }}</div>
+            <div class="kpi-caption">{{ active_machines|default:0 }} active machines</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Total Inspections</span>
+                <span class="kpi-icon icon-purple">
+                    <i class="bi bi-clipboard2-check"></i>
+                </span>
+            </div>
+            <div class="kpi-number">{{ total_inspections|default:0 }}</div>
+            <div class="kpi-caption">All recorded inspections</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Pending Reviews</span>
+                <span class="kpi-icon icon-orange">
+                    <i class="bi bi-hourglass-split"></i>
+                </span>
+            </div>
+            <div class="kpi-number">{{ pending_reviews|default:0 }}</div>
+            <div class="kpi-caption">Awaiting supervisor review</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Failed Inspections</span>
+                <span class="kpi-icon icon-red">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </span>
+            </div>
+            <div class="kpi-number">{{ failed_inspections|default:0 }}</div>
+            <div class="kpi-caption">Parts outside tolerance limits</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Approved Inspections</span>
+                <span class="kpi-icon icon-green">
+                    <i class="bi bi-patch-check"></i>
+                </span>
+            </div>
+            <div class="kpi-number">{{ approved_inspections|default:0 }}</div>
+            <div class="kpi-caption">Reviewed and approved</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card">
+            <div class="kpi-top">
+                <span class="kpi-label">Total Dispatches</span>
+                <span class="kpi-icon icon-teal"><i class="bi bi-truck"></i></span>
+            </div>
+            <div class="kpi-number">{{ dispatch_count|default:0 }}</div>
+            <div class="kpi-caption">Recorded dispatch clearances</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Recent Inspections Table -->
+<div class="section-card">
+    <div class="section-header">
+        <div>
+            <h3 class="section-title">Recent Quality Inspections</h3>
+            <div class="section-subtitle">Latest 5 inspection records</div>
+        </div>
+
+        <a href="{% url 'inspection_list' %}"
+           class="btn btn-outline-primary btn-sm px-3">
+            View All <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Machine</th>
+                    <th>Actual Value</th>
+                    <th>Result</th>
+                    <th>Review Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for inspection in recent_inspections %}
+                <tr>
+                    <td>
+                        <span class="part-number">{{ inspection.part_number }}</span>
+                    </td>
+
+                    <td>
+                        <div>{{ inspection.machine.name }}</div>
+                        <div class="machine-code">{{ inspection.machine.code }}</div>
+                    </td>
+
+                    <td>{{ inspection.actual_value }}</td>
+
+                    <td>
+                        {% if inspection.result == "PASS" %}
+                            <span class="status-badge status-pass">
+                                <i class="bi bi-check-circle me-1"></i>PASS
+                            </span>
+                        {% elif inspection.result == "FAIL" %}
+                            <span class="status-badge status-fail">
+                                <i class="bi bi-x-circle me-1"></i>FAIL
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-unknown">
+                                {{ inspection.get_result_display|default:"Unknown" }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if inspection.review_status == "APPROVED" %}
+                            <span class="status-badge status-approved">Approved</span>
+                        {% elif inspection.review_status == "REJECTED" %}
+                            <span class="status-badge status-rejected">Rejected</span>
+                        {% elif inspection.review_status == "PENDING" %}
+                            <span class="status-badge status-pending">Pending</span>
+                        {% else %}
+                            <span class="status-badge status-unknown">
+                                {{ inspection.get_review_status_display|default:"Unknown" }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-nowrap">
+                        <span class="small text-secondary">
+                            {{ inspection.created_at|date:"d M Y" }}
+                        </span>
+                        <div class="small text-secondary">
+                            {{ inspection.created_at|date:"h:i A" }}
+                        </div>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard2-x"></i>
+                            <div class="fw-semibold">No inspections found</div>
+                            <p class="small mb-3">
+                                Add your first inspection to see records here.
+                            </p>
+                            <a href="{% url 'inspection_create' %}"
+                               class="btn btn-primary btn-sm">
+                                Create Inspection
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

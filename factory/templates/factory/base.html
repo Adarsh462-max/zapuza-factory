@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Zapuza Factory{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --navy: #14243a;
+            --navy-light: #203852;
+            --accent: #3978f6;
+            --page-bg: #f4f7fb;
+            --text-main: #192b43;
+        }
+
+        body {
+            background: var(--page-bg);
+            color: var(--text-main);
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+        }
+
+        .sidebar {
+            background: var(--navy);
+            color: white;
+            min-height: 100vh;
+            padding: 26px 16px;
+        }
+
+        .brand {
+            color: white;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+        }
+
+        .brand-subtitle {
+            font-size: 10px;
+            letter-spacing: 1.4px;
+            color: #a8bad0;
+        }
+
+        .nav-heading {
+            color: #8fa5bf;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin: 28px 10px 10px;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 13px;
+            margin: 5px 0;
+            color: #dce6f3;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 14px;
+            transition: background .2s, color .2s;
+        }
+
+        .sidebar a:hover {
+            background: var(--navy-light);
+            color: white;
+        }
+
+        .sidebar a.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 5px 14px #3978f633;
+        }
+
+        .sidebar a i {
+            font-size: 17px;
+        }
+
+        .main-area {
+            min-width: 0;
+        }
+
+        .topbar {
+            background: white;
+            border-bottom: 1px solid #e7edf5;
+            padding: 17px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .topbar-subtitle {
+            color: #77869a;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .content {
+            padding: 28px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid #e9eef5;
+            border-radius: 15px;
+            box-shadow: 0 4px 18px #172b4d08;
+        }
+
+        .card, .table-responsive {
+            border-radius: 13px;
+        }
+
+        .btn {
+            border-radius: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 10px 12px;
+            border-color: #dce4ef;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #80a9ff;
+            box-shadow: 0 0 0 .2rem #3978f61a;
+        }
+
+        .table thead th {
+            background: #f6f8fc;
+            color: #617189;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap;
+        }
+
+        .table td, .table th {
+            padding: 13px 14px;
+            vertical-align: middle;
+        }
+
+        .alert {
+            border: 0;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                min-height: auto;
+                padding: 16px;
+            }
+
+            .sidebar-nav {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 3px;
+            }
+
+            .sidebar-nav a {
+                font-size: 12px;
+                padding: 10px 8px;
+                gap: 7px;
+            }
+
+            .nav-heading {
+                margin-top: 16px;
+            }
+
+            .topbar {
+                padding: 15px 18px;
+            }
+
+            .content {
+                padding: 18px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row g-0">
+
+        <aside class="col-md-3 col-lg-2 sidebar">
+            <div class="mb-4">
+                <h4 class="brand">ZAPUZA</h4>
+                <div class="brand-subtitle">FACTORY QUALITY SYSTEM</div>
+            </div>
+
+            <div class="nav-heading">MAIN MENU</div>
+
+            <nav class="sidebar-nav">
+                <a href="{% url 'dashboard' %}"
+                   class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2"></i> Dashboard
+                </a>
+
+                <a href="{% url 'machine_list' %}"
+                   class="{% if request.resolver_match.url_name == 'machine_list' or request.resolver_match.url_name == 'machine_create' %}active{% endif %}">
+                    <i class="bi bi-cpu"></i> Machines
+                </a>
+
+                <a href="{% url 'inspection_list' %}"
+                   class="{% if request.resolver_match.url_name == 'inspection_list' or request.resolver_match.url_name == 'inspection_create' %}active{% endif %}">
+                    <i class="bi bi-clipboard2-check"></i> Inspections
+                </a>
+
+                <a href="{% url 'approval_list' %}"
+                   class="{% if request.resolver_match.url_name == 'approval_list' or request.resolver_match.url_name == 'review_inspection' %}active{% endif %}">
+                    <i class="bi bi-shield-check"></i> Supervisor Approvals
+                </a>
+
+                <a href="{% url 'dispatch_list' %}"
+                   class="{% if request.resolver_match.url_name == 'dispatch_list' or request.resolver_match.url_name == 'dispatch_create' %}active{% endif %}">
+                    <i class="bi bi-truck"></i> Dispatch Clearance
+                </a>
+
+                <a href="/admin/" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-gear"></i> Admin Panel
+                </a>
+            </nav>
+
+            <div class="mt-4 pt-3 border-top border-secondary">
+                <small class="text-white-50">
+                    <i class="bi bi-building me-1"></i>
+                    Factory Operations
+                </small>
+            </div>
+        </aside>
+
+        <div class="col-md-9 col-lg-10 main-area">
+            <header class="topbar">
+                <div>
+                    <h1 class="topbar-title">
+                        {% block page_heading %}Factory Overview{% endblock %}
+                    </h1>
+                    <div class="topbar-subtitle">
+                        Zapuza Factory Operations & Quality Control
+                    </div>
+                </div>
+
+                <div class="d-none d-sm-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-primary fs-5"></i>
+                    <span class="small text-secondary">Quality Management</span>
+                </div>
+            </header>
+
+            <main class="content">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

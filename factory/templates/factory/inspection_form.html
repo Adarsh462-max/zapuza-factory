@@ -1,0 +1,394 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}New Inspection | Zapuza Factory{% endblock %}
+{% block page_heading %}New Quality Inspection{% endblock %}
+
+{% block content %}
+
+<style>
+    .form-page-title {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+
+    .form-page-subtitle {
+        color: #77869a;
+        font-size: 14px;
+    }
+
+    .inspection-form-card {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 16px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+        max-width: 900px;
+    }
+
+    .form-section-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #edf1f6;
+        background: #fbfcfe;
+    }
+
+    .form-section-header h5 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #253b57;
+        margin: 0;
+    }
+
+    .form-section-header p {
+        color: #8794a6;
+        font-size: 12px;
+        margin: 5px 0 0;
+    }
+
+    .form-body {
+        padding: 24px;
+    }
+
+    .form-label {
+        color: #34465d;
+        font-weight: 600;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .form-control, .form-select {
+        border: 1px solid #dce4ef;
+        border-radius: 9px;
+        padding: 11px 12px;
+        font-size: 14px;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #80a9ff;
+        box-shadow: 0 0 0 .2rem #3978f61a;
+    }
+
+    .field-help {
+        color: #8794a6;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    .measurement-box {
+        background: #f8faff;
+        border: 1px solid #e6edf7;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .measurement-heading {
+        font-size: 14px;
+        font-weight: 700;
+        color: #253b57;
+        margin-bottom: 16px;
+    }
+
+    .upload-box {
+        background: #fbfcfe;
+        border: 1px dashed #cbd7e7;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .upload-icon {
+        color: #3978f6;
+        font-size: 24px;
+    }
+
+    .form-actions {
+        padding: 18px 24px;
+        border-top: 1px solid #edf1f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        border-radius: 9px;
+        padding: 10px 16px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    @media (max-width: 575px) {
+        .form-body { padding: 17px; }
+        .form-section-header { padding: 17px; }
+        .form-actions { padding: 16px; }
+        .form-page-title { font-size: 20px; }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="mb-4">
+    <h2 class="form-page-title">New Quality Inspection</h2>
+    <p class="form-page-subtitle mb-0">
+        Record part measurements and evaluate quality against tolerance limits.
+    </p>
+</div>
+
+<div class="inspection-form-card">
+
+    <div class="form-section-header">
+        <h5><i class="bi bi-clipboard2-check text-primary me-2"></i>
+            Inspection Details
+        </h5>
+        <p>Enter accurate information for the part being inspected.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-body">
+
+            <!-- Machine and Part -->
+            <div class="mb-4">
+                <label for="machine" class="form-label">
+                    Machine <span class="text-danger">*</span>
+                </label>
+
+                <select id="machine" name="machine"
+                        class="form-select" required>
+                    <option value="">Select an active machine</option>
+                    {% for machine in machines %}
+                    <option value="{{ machine.id }}">
+                        {{ machine.code }} — {{ machine.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+
+                <div class="field-help">
+                    Only active machines are available for inspection.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="part_number" class="form-label">
+                    Part Number <span class="text-danger">*</span>
+                </label>
+
+                <input type="text" id="part_number" name="part_number"
+                       class="form-control"
+                       placeholder="e.g. SHAFT-101"
+                       maxlength="50" required>
+
+                <div class="field-help">
+                    Enter the unique identification or reference number of the part.
+                </div>
+            </div>
+
+            <!-- Measurements -->
+            <div class="measurement-box mb-4">
+                <div class="measurement-heading">
+                    <i class="bi bi-rulers text-primary me-2"></i>
+                    Measurement & Tolerance
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label for="nominal_value" class="form-label">
+                            Nominal Value *
+                        </label>
+                        <input type="number" id="nominal_value"
+                               name="nominal_value" step="0.001"
+                               class="form-control"
+                               value="25.000" required>
+                        <div class="field-help">Target measurement</div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="lower_limit" class="form-label">
+                            Lower Limit *
+                        </label>
+                        <input type="number" id="lower_limit"
+                               name="lower_limit" step="0.001"
+                               class="form-control"
+                               value="24.980" required>
+                        <div class="field-help">Minimum allowed value</div>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label for="upper_limit" class="form-label">
+                            Upper Limit *
+                        </label>
+                        <input type="number" id="upper_limit"
+                               name="upper_limit" step="0.001"
+                               class="form-control"
+                               value="25.050" required>
+                        <div class="field-help">Maximum allowed value</div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="actual_value" class="form-label">
+                            Actual Measurement *
+                        </label>
+                        <input type="number" id="actual_value"
+                               name="actual_value" step="0.001"
+                               class="form-control"
+                               value="25.020" required>
+                        <div class="field-help">
+                            The result is calculated automatically from the tolerance limits.
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div id="measurementFeedback"
+                             class="small mt-2"
+                             aria-live="polite">
+                            Enter measurements to preview the result.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defect Photo -->
+            <div class="mb-2">
+                <label for="defect_photo" class="form-label">
+                    Defect Photo
+                </label>
+
+                <div class="upload-box">
+                    <div class="d-flex align-items-start gap-3">
+                        <i class="bi bi-cloud-arrow-up upload-icon"></i>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold small mb-2">
+                                Upload inspection evidence
+                            </div>
+
+                            <input type="file" id="defect_photo"
+                                   name="defect_photo"
+                                   class="form-control"
+                                   accept="image/*">
+
+                            <div class="field-help">
+                                A photo is required when the actual measurement fails.
+                            </div>
+
+                            <div id="photoPreview" class="mt-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <a href="{% url 'inspection_list' %}"
+               class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check2-circle me-1"></i>
+                Save Inspection
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    const nominalInput = document.getElementById("nominal_value");
+    const lowerInput = document.getElementById("lower_limit");
+    const upperInput = document.getElementById("upper_limit");
+    const actualInput = document.getElementById("actual_value");
+    const feedback = document.getElementById("measurementFeedback");
+    const photoInput = document.getElementById("defect_photo");
+    const photoPreview = document.getElementById("photoPreview");
+
+    function previewMeasurement() {
+        const nominal = nominalInput.value.trim();
+        const lower = lowerInput.value.trim();
+        const upper = upperInput.value.trim();
+        const actual = actualInput.value.trim();
+
+        feedback.className = "small mt-2";
+
+        if (nominal === "" || lower === "" ||
+            upper === "" || actual === "") {
+            feedback.textContent = "Enter all measurements to preview the result.";
+            return;
+        }
+
+        const n = Number(nominal);
+        const l = Number(lower);
+        const u = Number(upper);
+        const a = Number(actual);
+
+        if (![n, l, u, a].every(Number.isFinite)) {
+            feedback.textContent = "Please enter valid numeric measurements.";
+            feedback.classList.add("text-danger");
+            return;
+        }
+
+        if (l > u) {
+            feedback.textContent = "Lower limit cannot exceed upper limit.";
+            feedback.classList.add("text-danger");
+            return;
+        }
+
+        if (n < l || n > u) {
+            feedback.textContent = "Nominal value must be within the tolerance limits.";
+            feedback.classList.add("text-danger");
+            return;
+        }
+
+        if (a >= l && a <= u) {
+            feedback.textContent = "Preview: PASS — actual value is within tolerance.";
+            feedback.classList.add("text-success");
+        } else {
+            feedback.textContent = "Preview: FAIL — a defect photo is required.";
+            feedback.classList.add("text-danger");
+        }
+    }
+
+    [nominalInput, lowerInput, upperInput, actualInput].forEach(function (input) {
+        input.addEventListener("input", previewMeasurement);
+    });
+
+    photoInput.addEventListener("change", function () {
+        photoPreview.replaceChildren();
+
+        const file = this.files && this.files[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            alert("Please select an image file.");
+            this.value = "";
+            return;
+        }
+
+        const image = document.createElement("img");
+        image.alt = "Selected defect photo preview";
+        image.style.maxWidth = "180px";
+        image.style.maxHeight = "160px";
+        image.style.objectFit = "contain";
+        image.style.borderRadius = "8px";
+        image.style.border = "1px solid #e1e8f0";
+
+        const objectUrl = URL.createObjectURL(file);
+        image.src = objectUrl;
+        image.onload = function () {
+            URL.revokeObjectURL(objectUrl);
+        };
+
+        const label = document.createElement("div");
+        label.className = "small text-secondary mt-2";
+        label.textContent = file.name;
+
+        photoPreview.append(image, label);
+    });
+
+    previewMeasurement();
+</script>
+
+{% endblock %}

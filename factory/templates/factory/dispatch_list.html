@@ -1,0 +1,264 @@
+```html
+{% extends "factory/base.html" %}
+
+{% block title %}Dispatch Clearance | Zapuza{% endblock %}
+
+{% block content %}
+<style>
+    .dispatch-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .dispatch-heading {
+        font-weight: 750;
+        letter-spacing: -0.5px;
+    }
+
+    .section-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--bs-secondary-color);
+    }
+
+    .dispatch-table th {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--bs-secondary-color);
+        white-space: nowrap;
+        padding: 15px 16px;
+        background: var(--bs-tertiary-bg);
+    }
+
+    .dispatch-table td {
+        padding: 16px;
+        vertical-align: middle;
+    }
+
+    .gate-pass {
+        font-weight: 750;
+        color: var(--bs-primary);
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        padding: 42px 15px !important;
+        color: var(--bs-secondary-color);
+    }
+
+    .dispatch-search {
+        max-width: 300px;
+    }
+
+    .dispatch-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 8px;
+        background: var(--bs-tertiary-bg);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+</style>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <div class="section-label mb-2">Factory Operations / Dispatch</div>
+        <h2 class="dispatch-heading mb-2">Dispatch Clearance</h2>
+        <p class="text-secondary mb-0">
+            Track dispatch-eligible parts, gate passes and clearance history.
+        </p>
+    </div>
+
+    <a href="{% url 'dispatch_create' %}" class="btn btn-primary px-4 py-2">
+        <i class="bi bi-plus-circle me-2"></i>Create Dispatch
+    </a>
+</div>
+
+<!-- Eligible Inspections -->
+<div class="dispatch-card mb-4">
+    <div class="p-3 p-md-4 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h5 class="fw-bold mb-1">Eligible for Dispatch</h5>
+                <p class="text-secondary small mb-0">
+                    Only PASS inspections approved by the supervisor can be dispatched.
+                </p>
+            </div>
+            <span class="dispatch-count">{{ eligible_inspections|length }}</span>
+        </div>
+    </div>
+
+    <div class="p-3 border-bottom">
+        <div class="input-group dispatch-search">
+            <span class="input-group-text bg-transparent">
+                <i class="bi bi-search"></i>
+            </span>
+            <input
+                type="search"
+                id="eligibleSearch"
+                class="form-control"
+                placeholder="Search part or machine..."
+                aria-label="Search eligible inspections"
+            >
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover dispatch-table mb-0">
+            <thead>
+                <tr>
+                    <th>Part Number</th>
+                    <th>Machine</th>
+                    <th>Actual Value</th>
+                    <th>Quality Result</th>
+                    <th>Supervisor Review</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody id="eligibleTable">
+                {% for item in eligible_inspections %}
+                <tr>
+                    <td class="fw-semibold">{{ item.part_number }}</td>
+                    <td>
+                        <span class="fw-semibold">{{ item.machine.code }}</span>
+                        <div class="small text-secondary">{{ item.machine.name }}</div>
+                    </td>
+                    <td>{{ item.actual_value }}</td>
+                    <td>
+                        <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>PASS
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-2">
+                            <i class="bi bi-patch-check me-1"></i>APPROVED
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a
+                            href="{% url 'dispatch_create' %}?inspection={{ item.pk }}"
+                            class="btn btn-sm btn-outline-primary"
+                        >
+                            Create Gate Pass <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center empty-state">
+                        <i class="bi bi-box-seam fs-2 d-block mb-3"></i>
+                        <div class="fw-semibold text-body mb-1">No parts awaiting dispatch</div>
+                        <div class="small">
+                            Approved PASS inspections will appear here.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Dispatch History -->
+<div class="dispatch-card">
+    <div class="p-3 p-md-4 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h5 class="fw-bold mb-1">Dispatch History</h5>
+                <p class="text-secondary small mb-0">
+                    Previously cleared parts and their gate-pass details.
+                </p>
+            </div>
+            <span class="dispatch-count">{{ dispatches|length }}</span>
+        </div>
+    </div>
+
+    <div class="p-3 border-bottom">
+        <div class="input-group dispatch-search">
+            <span class="input-group-text bg-transparent">
+                <i class="bi bi-search"></i>
+            </span>
+            <input
+                type="search"
+                id="historySearch"
+                class="form-control"
+                placeholder="Search gate pass or customer..."
+                aria-label="Search dispatch history"
+            >
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover dispatch-table mb-0">
+            <thead>
+                <tr>
+                    <th>Gate Pass Number</th>
+                    <th>Customer</th>
+                    <th>Part Number</th>
+                    <th>Machine</th>
+                    <th>Clearance Date</th>
+                </tr>
+            </thead>
+            <tbody id="historyTable">
+                {% for item in dispatches %}
+                <tr>
+                    <td>
+                        <span class="gate-pass">
+                            <i class="bi bi-receipt me-2"></i>{{ item.gate_pass_number }}
+                        </span>
+                    </td>
+                    <td class="fw-semibold">{{ item.customer_name }}</td>
+                    <td>{{ item.inspection.part_number }}</td>
+                    <td>{{ item.inspection.machine.code }}</td>
+                    <td>
+                        <i class="bi bi-calendar3 me-1 text-secondary"></i>
+                        {{ item.cleared_at|date:"d M Y, H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center empty-state">
+                        <i class="bi bi-clock-history fs-2 d-block mb-3"></i>
+                        <div class="fw-semibold text-body mb-1">No dispatch records yet</div>
+                        <div class="small">
+                            Completed dispatches will be recorded here.
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function enableTableSearch(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const table = document.getElementById(tableId);
+
+        if (!input || !table) return;
+
+        input.addEventListener("input", function () {
+            const query = this.value.trim().toLowerCase();
+
+            table.querySelectorAll("tr").forEach(function (row) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? "" : "none";
+            });
+        });
+    }
+
+    enableTableSearch("eligibleSearch", "eligibleTable");
+    enableTableSearch("historySearch", "historyTable");
+</script>
+{% endblock %}
+```

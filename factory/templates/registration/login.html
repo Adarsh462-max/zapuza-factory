@@ -1,0 +1,88 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Login | Zapuza Factory{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-shield-lock fs-1 text-primary"></i>
+                        <h2 class="fw-bold mt-2">Factory Login</h2>
+                        <p class="text-secondary">
+                            Sign in to Zapuza Operations
+                        </p>
+                    </div>
+
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        Username or password is incorrect.
+                        Please try again.
+                    </div>
+                    {% endif %}
+
+                    {% if next %}
+                        {% if user.is_authenticated %}
+                        <div class="alert alert-warning">
+                            Your account cannot access that page.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            Please log in to continue.
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="id_username"
+                                   class="form-label fw-semibold">
+                                Username
+                            </label>
+                            <input
+                                type="text"
+                                name="username"
+                                id="id_username"
+                                class="form-control form-control-lg"
+                                autocomplete="username"
+                                required
+                                autofocus
+                            >
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="id_password"
+                                   class="form-label fw-semibold">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                id="id_password"
+                                class="form-control form-control-lg"
+                                autocomplete="current-password"
+                                required
+                            >
+                        </div>
+
+                        <input type="hidden"
+                               name="next"
+                               value="{{ next }}">
+
+                        <button type="submit"
+                                class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

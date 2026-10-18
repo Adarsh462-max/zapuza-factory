@@ -1,0 +1,287 @@
+
+{% extends "factory/base.html" %}
+
+{% block title %}Machines | Zapuza Factory{% endblock %}
+{% block page_heading %}Machine Management{% endblock %}
+
+{% block content %}
+
+<style>
+    .machine-heading {
+        font-size: 23px;
+        font-weight: 750;
+        color: #192b43;
+        margin-bottom: 6px;
+    }
+
+    .machine-description {
+        color: #77869a;
+        font-size: 14px;
+    }
+
+    .machine-panel {
+        background: #fff;
+        border: 1px solid #e9eef5;
+        border-radius: 15px;
+        box-shadow: 0 4px 18px #172b4d08;
+        overflow: hidden;
+    }
+
+    .panel-header {
+        padding: 20px;
+        border-bottom: 1px solid #edf1f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .panel-title {
+        color: #192b43;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .machine-search {
+        max-width: 280px;
+    }
+
+    .machine-search .form-control {
+        border-radius: 9px;
+        padding: 9px 12px;
+    }
+
+    .machine-table {
+        margin-bottom: 0;
+    }
+
+    .machine-table thead th {
+        background: #f6f8fc;
+        color: #617189;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+        padding: 15px 16px;
+        border-bottom: 1px solid #e9eef5;
+    }
+
+    .machine-table tbody td {
+        padding: 16px;
+        vertical-align: middle;
+        color: #42536a;
+        font-size: 13px;
+    }
+
+    .machine-table tbody tr:hover {
+        background: #f8faff;
+    }
+
+    .machine-code {
+        font-weight: 750;
+        color: #253b57;
+    }
+
+    .machine-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eaf1ff;
+        color: #3978f6;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .machine-status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .active-status {
+        background: #e5f7ed;
+        color: #167748;
+    }
+
+    .inactive-status {
+        background: #edf1f6;
+        color: #617189;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 45px 15px;
+        color: #8794a6;
+    }
+
+    .empty-state i {
+        display: block;
+        font-size: 35px;
+        color: #b8c5d6;
+        margin-bottom: 10px;
+    }
+
+    .panel-footer {
+        padding: 14px 20px;
+        border-top: 1px solid #edf1f6;
+        color: #8794a6;
+        font-size: 12px;
+    }
+
+    @media (max-width: 576px) {
+        .machine-heading { font-size: 20px; }
+        .panel-header { padding: 16px; }
+        .machine-search { max-width: 100%; width: 100%; }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+    <div>
+        <h2 class="machine-heading">Machines & Workstations</h2>
+        <p class="machine-description mb-0">
+            Manage registered factory machines and their operational status.
+        </p>
+    </div>
+
+    <a href="{% url 'machine_create' %}" class="btn btn-primary px-3 py-2">
+        <i class="bi bi-plus-lg me-1"></i> Add Machine
+    </a>
+</div>
+
+<!-- Machine Management Table -->
+<div class="machine-panel">
+    <div class="panel-header">
+        <div>
+            <h3 class="panel-title">Registered Machines</h3>
+            <div class="small text-secondary mt-1">
+                Search machines by code, name or location
+            </div>
+        </div>
+
+        <div class="machine-search">
+            <input type="search"
+                   id="machineSearch"
+                   class="form-control"
+                   placeholder="Search machines..."
+                   aria-label="Search machines">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover machine-table" id="machineTable">
+            <thead>
+                <tr>
+                    <th>Machine Code</th>
+                    <th>Machine Name</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for machine in machines %}
+                <tr>
+                    <td>
+                        <span class="machine-code">{{ machine.code }}</span>
+                    </td>
+
+                    <td>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="machine-icon">
+                                <i class="bi bi-cpu"></i>
+                            </div>
+                            <span class="fw-semibold">{{ machine.name }}</span>
+                        </div>
+                    </td>
+
+                    <td>
+                        <i class="bi bi-geo-alt text-secondary me-1"></i>
+                        {{ machine.location }}
+                    </td>
+
+                    <td>
+                        {% if machine.is_active %}
+                            <span class="machine-status active-status">
+                                <i class="bi bi-check-circle me-1"></i>Active
+                            </span>
+                        {% else %}
+                            <span class="machine-status inactive-status">
+                                <i class="bi bi-pause-circle me-1"></i>Inactive
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <form method="post"
+                              action="{% url 'machine_toggle' machine.pk %}">
+                            {% csrf_token %}
+
+                            {% if machine.is_active %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Deactivate this machine?');">
+                                    <i class="bi bi-pause-circle me-1"></i>
+                                    Deactivate
+                                </button>
+                            {% else %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-play-circle me-1"></i>
+                                    Activate
+                                </button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-cpu"></i>
+                            <div class="fw-semibold">No machines registered</div>
+                            <p class="small mb-3">
+                                Add your first factory machine to get started.
+                            </p>
+                            <a href="{% url 'machine_create' %}"
+                               class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-lg me-1"></i>Add Machine
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-footer">
+        <i class="bi bi-info-circle me-1"></i>
+        Deactivated machines remain in the records but cannot be selected for new inspections.
+    </div>
+</div>
+
+<script>
+    const machineSearch = document.getElementById("machineSearch");
+    const machineRows = document.querySelectorAll("#machineTable tbody tr");
+
+    machineSearch.addEventListener("input", function () {
+        const query = this.value.toLowerCase().trim();
+
+        machineRows.forEach(function (row) {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(query) ? "" : "none";
+        });
+    });
+</script>
+
+{% endblock %}
